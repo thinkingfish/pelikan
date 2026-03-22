@@ -19,6 +19,9 @@ use tracing_subscriber::prelude::*;
 /// `error!()` etc. keep working.
 pub use log::{debug, error, info, trace, warn};
 
+#[doc(hidden)]
+pub use tracing as __tracing;
+
 /// Log a fatal error and terminate the process.
 #[macro_export]
 macro_rules! fatal {
@@ -51,7 +54,7 @@ macro_rules! klog {
         if sample > 0
             && COUNTER.fetch_add(1, ::std::sync::atomic::Ordering::Relaxed) % sample == 0
         {
-            $crate::error!(target: "klog", $($arg)*);
+            $crate::__tracing::trace!(target: "klog", $($arg)*);
         }
     }}
 }
