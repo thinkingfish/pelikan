@@ -1,0 +1,47 @@
+daemonize = false
+
+[general]
+engine = "mio"
+protocol = "ascii"
+
+[metrics]
+interval = "1s"
+
+[admin]
+host = "0.0.0.0"
+port = "9999"
+http_enabled = true
+http_host = "0.0.0.0"
+http_port = "9998"
+
+[server]
+host = "0.0.0.0"
+port = "12321"
+timeout = 100
+nevent = 1024
+
+[worker]
+timeout = 100
+nevent = 1024
+threads = 1
+
+[time]
+
+[buf]
+
+[debug]
+log_level = "debug"
+log_file = "/tmp/pelikan_test_logs/debug.log"
+log_max_size = 4096
+log_max_keep_files = 5
+log_rotation_interval = "minutely"
+
+[klog]
+file = "/tmp/pelikan_test_logs/klog.log"
+max_size = 2048
+max_keep_files = 3
+sample = 1
+
+[sockio]
+
+[tcp]
