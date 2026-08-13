@@ -11,6 +11,13 @@
 //! unclassified aborts generation rather than being silently omitted.
 
 use crate::svg::*;
+
+const TS: TypeScale = TYPE_SCALE;
+
+/// Chart-local default: body text at this chart's scale.
+fn text(x: f64, y: f64, s: &str) -> crate::svg::Text {
+    crate::svg::text(x, y, s).size(TS.body)
+}
 use cargo_metadata::MetadataCommand;
 use regex::Regex;
 use std::collections::{BTreeMap, BTreeSet};
@@ -96,14 +103,14 @@ const FOUNDATION_ROW: &[&str] = &[
 ];
 
 // layout constants (the SVG_STYLE table of the Python original)
-const CELL_H: f64 = 40.0;
-const PAD: f64 = 16.0;
+const CELL_H: f64 = 52.0;
+const PAD: f64 = 24.0;
 const GAP: f64 = 12.0;
 const BAND_GAP: f64 = 26.0;
 const RULE_H: f64 = 7.0;
-const CANVAS_W: f64 = 1280.0;
+const CANVAS_W: f64 = 2280.0;
 const MARGIN: f64 = 24.0;
-const LABEL_W: f64 = 200.0;
+const LABEL_W: f64 = 300.0;
 
 fn layer_of(name: &str) -> Option<Layer> {
     LAYER.iter().find(|(n, _)| *n == name).map(|(_, l)| *l)
@@ -398,7 +405,7 @@ pub fn generate() {
     let band_label = |parts: &mut Vec<String>, name: &str, y0: f64, y1: f64| {
         parts.push(
             text(MARGIN + inner_w + LABEL_W / 2.0, (y0 + y1) / 2.0, name)
-                .size(20)
+                .size(TS.h1)
                 .bold()
                 .build(),
         );
@@ -426,7 +433,7 @@ pub fn generate() {
         );
         parts.push(
             text(bx + box_w / 2.0, y + PAD + CELL_H / 2.0 - 6.0, prod)
-                .size(17)
+                .size(TS.h2)
                 .bold()
                 .build(),
         );
@@ -456,7 +463,7 @@ pub fn generate() {
                 bx + box_w / 2.0,
                 by + bar_h / 2.0,
                 &label,
-                14,
+                TS.body,
                 false,
             ));
             by += bar_h + bar_gap;
@@ -495,7 +502,7 @@ pub fn generate() {
         );
         parts.push(
             text(x + w / 2.0, y + PAD + CELL_H / 2.0 - 6.0, title)
-                .size(17)
+                .size(TS.h2)
                 .bold()
                 .build(),
         );
@@ -513,7 +520,13 @@ pub fn generate() {
             let mut cx = x + PAD;
             for cell in row {
                 parts.push(rect(cx, cy, cw, CELL_H, fill).opacity(op).build());
-                parts.push(cell_text(cx + cw / 2.0, cy + CELL_H / 2.0, cell, 14, false));
+                parts.push(cell_text(
+                    cx + cw / 2.0,
+                    cy + CELL_H / 2.0,
+                    cell,
+                    TS.body,
+                    false,
+                ));
                 cx += cw + GAP;
             }
             cy += CELL_H + GAP;

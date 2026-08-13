@@ -218,9 +218,29 @@ impl Ortho<'_> {
     }
 }
 
-/// Estimated rendered width of a label at the shared 14px label size.
-pub fn label_w(s: &str) -> f64 {
-    s.len() as f64 * 14.0 * 0.55 + 16.0
+/// Semantic type scale for a chart. Every text element plays one of three
+/// roles — no ad-hoc font sizes:
+pub struct TypeScale {
+    /// panel and band titles
+    pub h1: u32,
+    /// element names: crates, threads, stages, lane headers, externals
+    pub h2: u32,
+    /// everything else: chips, edge/queue/sub labels, mini-tables
+    pub body: u32,
+}
+
+/// One ramp for every chart: the canvases are reconciled to equal width
+/// (2280), so a single scale renders text at the same effective size across
+/// the whole set, inline and at full size.
+pub const TYPE_SCALE: TypeScale = TypeScale {
+    h1: 30,
+    h2: 26,
+    body: 22,
+};
+
+/// Estimated rendered width of a label at an explicit font size.
+pub fn label_w_at(s: &str, size: f64) -> f64 {
+    s.len() as f64 * size * 0.55 + 16.0
 }
 
 pub fn svg_document(w: f64, h: f64, generator: &str, parts: &[String]) -> String {
