@@ -26,7 +26,7 @@ common::pelikan_main! {
         commands.",
     config: RdsConfig,
     percentiles: PERCENTILES,
-    print_config: true,
+    print_config,
     launch: |config| match Rds::new(config) {
         Ok(rds) => rds.wait(),
         Err(e) => {

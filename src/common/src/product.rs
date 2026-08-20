@@ -7,16 +7,61 @@
 /// `common` itself needs no clap/metriken/logger edges. Callers must have
 /// `#[macro_use] extern crate logger` in scope for the `debug!` line.
 ///
-/// `print_config: true` requires the config type to implement `print()`;
-/// omit the field for configs that cannot print themselves.
+/// `print_config` is a presence-only marker, not a toggle: include it to
+/// add the `-c`/`--config` flag (the config type must implement
+/// `print()`), omit it for configs that cannot print themselves.
+/// `print_config: false` does not exist and will not compile.
+///
+/// The `@main` arm is internal. The public arms pass the `matches` and
+/// `config` binding idents alongside the code fragments that reference
+/// them, so both sides share one hygiene context.
 #[macro_export]
 macro_rules! pelikan_main {
     (
         about: $about:expr,
         config: $config:ty,
         percentiles: $percentiles:expr,
-        $(print_config: $print_config:literal,)?
+        print_config,
         launch: $launch:expr $(,)?
+    ) => {
+        $crate::pelikan_main! {
+            @main $about, $config, $percentiles, $launch,
+            idents: [matches, config],
+            args: {
+                .arg(
+                    ::clap::Arg::new("print-config")
+                        .short('c')
+                        .long("config")
+                        .help("List all options in config")
+                        .action(::clap::ArgAction::SetTrue),
+                )
+            },
+            post_load: {
+                if matches.get_flag("print-config") {
+                    config.print();
+                    ::std::process::exit(0);
+                }
+            }
+        }
+    };
+    (
+        about: $about:expr,
+        config: $config:ty,
+        percentiles: $percentiles:expr,
+        launch: $launch:expr $(,)?
+    ) => {
+        $crate::pelikan_main! {
+            @main $about, $config, $percentiles, $launch,
+            idents: [matches, config],
+            args: {},
+            post_load: {}
+        }
+    };
+    (
+        @main $about:expr, $config:ty, $percentiles:expr, $launch:expr,
+        idents: [$matches:ident, $cfg:ident],
+        args: { $($args:tt)* },
+        post_load: { $($post_load:tt)* }
     ) => {
         fn main() {
             // custom panic hook to terminate whole process after unwinding
@@ -27,7 +72,7 @@ macro_rules! pelikan_main {
             }));
 
             // parse command line options
-            let mut command = ::clap::Command::new(env!("CARGO_BIN_NAME"))
+            let $matches = ::clap::Command::new(env!("CARGO_BIN_NAME"))
                 .version(env!("CARGO_PKG_VERSION"))
                 .long_about($about)
                 .arg(
@@ -42,21 +87,12 @@ macro_rules! pelikan_main {
                         .help("Server configuration file")
                         .action(::clap::ArgAction::Set)
                         .index(1),
-                );
-            $(
-                let _: bool = $print_config;
-                command = command.arg(
-                    ::clap::Arg::new("print-config")
-                        .short('c')
-                        .long("config")
-                        .help("List all options in config")
-                        .action(::clap::ArgAction::SetTrue),
-                );
-            )?
-            let matches = command.get_matches();
+                )
+                $($args)*
+                .get_matches();
 
             // output stats descriptions and exit if the `stats` option was provided
-            if matches.get_flag("stats") {
+            if $matches.get_flag("stats") {
                 println!("{:<31} {:<15} DESCRIPTION", "NAME", "TYPE");
 
                 let mut metrics = ::std::vec::Vec::new();
@@ -93,7 +129,7 @@ macro_rules! pelikan_main {
             }
 
             // load config from file
-            let config: $config = if let Some(file) = matches.get_one::<String>("CONFIG") {
+            let $cfg: $config = if let Some(file) = $matches.get_one::<String>("CONFIG") {
                 debug!("loading config: {file}");
                 match <$config>::load(file) {
                     Ok(c) => c,
@@ -106,15 +142,9 @@ macro_rules! pelikan_main {
                 Default::default()
             };
 
-            $(
-                let _: bool = $print_config;
-                if matches.get_flag("print-config") {
-                    config.print();
-                    ::std::process::exit(0);
-                }
-            )?
+            $($post_load)*
 
-            ($launch)(config)
+            ($launch)($cfg)
         }
     };
 }

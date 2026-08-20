@@ -26,7 +26,7 @@ common::pelikan_main! {
         commands.",
     config: SegcacheConfig,
     percentiles: PERCENTILES,
-    print_config: true,
+    print_config,
     launch: |config| match Segcache::new(config) {
         Ok(segcache) => segcache.wait(),
         Err(e) => {
