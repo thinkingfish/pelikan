@@ -1,6 +1,6 @@
 # README: How These Principles Were Produced
 
-This file documents the method behind `realtime-data-services-principles.md`, so the process can be repeated — with other experts, other domains, or agents on either side of the table. The companion document captures *what* was extracted; this one captures *how*, because the project's goal is principles that are actually applicable, and applicability turned out to depend as much on the extraction method as on the expert's knowledge.
+This file documents the method behind [`PRINCIPLES.md`](PRINCIPLES.md), so the process can be repeated — with other experts, other domains, or agents on either side of the table. The companion document captures *what* was extracted; this one captures *how*, because the project's goal is principles that are actually applicable, and applicability turned out to depend as much on the extraction method as on the expert's knowledge.
 
 ## The core stance
 
